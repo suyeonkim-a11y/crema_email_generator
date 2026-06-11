@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CREMA Sales Email Generator</title>
+<style>
+/* ── reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;
+  background: #F7F8FA;
+  color: #111827;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ── scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 99px; }
+
+/* ── header ── */
+#header {
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  height: 56px;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-shrink: 0;
+}
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-mark {
+  width: 32px; height: 32px; border-radius: 8px; background: #3B5BDB;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.logo-name { font-weight: 800; font-size: 15px; color: #111; }
+.logo-sub  { font-size: 13px; color: #9ca3af; margin-left: 4px; }
+.header-badges { display: flex; gap: 6px; align-items: center; }
+
+/* ── page wrapper: header + two-col ── */
+#page {
+  display: flex;
+  height: calc(100vh - 56px);   /* 나머지 전체 높이 */
+}
+
+/* ── left panel ── */
+#left-panel {
+  width: 440px;
+  flex-shrink: 0;
+  border-right: 1px solid #e5e7eb;
+  background: #fff;
+  overflow-y: auto;
+  overflow-x: clip;
+  padding: 20px 24px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── right panel ── */
+#right-panel {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  padding: 24px 28px 60px;
+  background: #F7F8FA;
+}
+
+/* ── card ── */
+.card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+
+  box-shadow: 0 1px 2px rgba(0,0,0,.05);
+}
+.card-hd {
+  border-radius: 12px 12px 0 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  background: #fafafa;
+}
+.card-hd-title { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; color: #1f2937; }
+.card-bd { padding: 18px 18px 24px; border-radius: 0 0 12px 12px; }
+
+/* ── form controls ── */
+.fg { margin-bottom: 16px; }
+.fg:last-child { margin-bottom: 4px; }
+.fg label {
+  display: block; font-size: 11px; font-weight: 700;
+  color: #374151; margin-bottom: 6px; letter-spacing: .01em;
+}
+.fg label .req { color: #ef4444; margin-left: 2px; }
+.fg label .note { font-weight: 400; color: #9ca3af; margin-left: 4px; }
+
+input[type=text], input[type=url], input[type=email], input[type=password], select, textarea {
+  display: block;
+  width: 100%;
+  font-size: 13px;
+  font-family: inherit;
+  color: #111827;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 9px 12px;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+input[type=text]::placeholder,
+input[type=url]::placeholder,
+input[type=email]::placeholder,
+input[type=password]::placeholder,
+textarea::placeholder { color: #c4c8d0; }
+input:focus, select:focus, textarea:focus {
+  border-color: #3B5BDB;
+  box-shadow: 0 0 0 3px rgba(59,91,219,.12);
+}
+textarea { resize: vertical; min-height: 72px; }
+select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ── size toggles ── */
+.toggle-row { display: flex; gap: 6px; }
+.toggle-btn {
+  flex: 1; font-size: 11px; font-weight: 600; font-family: inherit;
+  padding: 8px 6px; border-radius: 8px; border: 1px solid #d1d5db;
+  background: #fff; color: #4b5563; cursor: pointer; text-align: center;
+  transition: all .15s; line-height: 1.4;
+}
+.toggle-btn:hover { border-color: #a5b4fc; background: #f5f7ff; }
+.toggle-btn.on { background: #3B5BDB; color: #fff; border-color: #3B5BDB; }
+
+/* ── tier list ── */
+.tier-list { display: flex; flex-direction: column; gap: 4px; }
+.tier-btn {
+  width: 100%; text-align: left; font-size: 12px; font-weight: 500;
+  font-family: inherit; padding: 9px 12px; border-radius: 8px;
+  border: 1px solid #d1d5db; background: #fff; color: #4b5563;
+  cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+  transition: all .15s;
+}
+.tier-btn:hover { border-color: #a5b4fc; background: #f5f7ff; }
+.tier-btn.on { background: rgba(59,91,219,.06); color: #3B5BDB; border-color: rgba(59,91,219,.4); font-weight: 700; }
+.tier-check { opacity: 0; font-size: 13px; font-weight: 900; color: #3B5BDB; flex-shrink: 0; }
+.tier-btn.on .tier-check { opacity: 1; }
+
+/* ── buttons ── */
+.btn-primary {
+  width: 100%; padding: 13px; border-radius: 10px; font-size: 14px; font-weight: 700;
+  border: none; cursor: pointer; font-family: inherit;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all .15s; margin-top: 4px;
+}
+.btn-primary.on  { background: #3B5BDB; color: #fff; box-shadow: 0 2px 8px rgba(59,91,219,.28); }
+.btn-primary.on:hover { background: #3451C7; }
+.btn-primary.on:active { transform: scale(.98); }
+.btn-primary.off { background: #f3f4f6; color: #9ca3af; cursor: not-allowed; }
+
+.btn-save {
+  padding: 7px 18px; border-radius: 8px; font-size: 12px; font-weight: 700;
+  border: none; background: #3B5BDB; color: #fff; cursor: pointer; font-family: inherit;
+  transition: all .15s; white-space: nowrap; flex-shrink: 0;
+}
+.btn-save:hover { background: #3451C7; }
+.btn-save:active { transform: scale(.96); }
+
+.btn-copy {
+  padding: 5px 12px; border-radius: 7px; font-size: 11px; font-weight: 600;
+  border: 1px solid #e5e7eb; background: #fff; color: #6b7280;
+  cursor: pointer; font-family: inherit; transition: all .15s; white-space: nowrap;
+}
+.btn-copy:hover { background: #f9fafb; color: #374151; }
+.btn-copy.done { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+
+.btn-reset {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 9px 20px; border-radius: 9px; border: 1px solid #e5e7eb;
+  background: #fff; color: #6b7280; font-size: 12px; font-family: inherit;
+  cursor: pointer; margin: 0 auto; transition: all .15s;
+}
+.btn-reset:hover { border-color: #d1d5db; background: #f9fafb; }
+
+/* ── badge ── */
+.badge {
+  display: inline-flex; align-items: center; padding: 2px 8px;
+  border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid; white-space: nowrap;
+}
+.b-blue   { background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; }
+.b-green  { background:#f0fdf4; color:#15803d; border-color:#bbf7d0; }
+.b-purple { background:#faf5ff; color:#7e22ce; border-color:#e9d5ff; }
+.b-orange { background:#fff7ed; color:#c2410c; border-color:#fed7aa; }
+.b-gray   { background:#f9fafb; color:#4b5563; border-color:#e5e7eb; }
+
+/* ── hint / notice ── */
+.hint { font-size: 11px; color: #9ca3af; margin-top: 5px; }
+.hint.warn { color: #f59e0b; }
+.notice-ok  { background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:9px 12px; font-size:12px; color:#15803d; margin-top:8px; }
+.notice-err { background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:12px 14px; margin-bottom:14px; }
+.notice-err .err-title { font-size:13px; font-weight:700; color:#b91c1c; margin-bottom:4px; }
+.notice-err pre { font-size:12px; color:#b91c1c; white-space:pre-wrap; font-family:inherit; }
+
+/* ── key-value row ── */
+.kv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.kv-cell { background:#f9fafb; border-radius:8px; padding:8px 10px; }
+.kv-lbl  { font-size:10px; font-weight:700; color:#9ca3af; margin-bottom:2px; }
+.kv-val  { font-size:12px; font-weight:600; color:#1f2937; line-height:1.4; }
+
+.pain-box { background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:10px 12px; }
+.pain-title { font-size:11px; font-weight:700; color:#b45309; margin-bottom:6px; }
+.pain-item  { font-size:12px; color:#92400e; display:flex; gap:6px; line-height:1.5; margin-bottom:3px; }
+
+.strat-box { background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:10px 12px; }
+.strat-txt { font-size:12px; color:#1e40af; line-height:1.65; }
+
+.sec-lbl { font-size:11px; font-weight:700; color:#374151; margin:12px 0 8px; }
+.priority-row { display:flex; align-items:center; gap:10px; margin-bottom:7px; }
+.priority-num {
+  width:20px; height:20px; border-radius:50%; background:rgba(59,91,219,.1);
+  color:#3B5BDB; font-size:11px; font-weight:900;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.priority-txt { font-size:12px; color:#374151; line-height:1.4; }
+
+.ref-row { display:flex; gap:10px; padding:10px; background:#f9fafb; border-radius:8px; margin-bottom:8px; }
+.ref-icon {
+  width:32px; height:32px; border-radius:8px; background:rgba(59,91,219,.1);
+  color:#3B5BDB; font-size:14px; font-weight:900;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.ref-name { font-size:12px; font-weight:700; color:#1f2937; }
+.ref-meta { display:flex; align-items:center; gap:6px; margin-bottom:3px; }
+.ref-desc { font-size:11px; color:#6b7280; line-height:1.5; }
+
+.promo-item { background:#fff7ed; border:1px solid #fed7aa; border-radius:8px; padding:8px 12px; font-size:12px; color:#c2410c; margin-bottom:6px; }
+.price-box  { background:#f9fafb; border-radius:8px; padding:9px 12px; }
+.price-lbl  { font-size:10px; font-weight:700; color:#9ca3af; margin-bottom:3px; }
+.price-val  { font-size:12px; color:#1f2937; }
+
+.subj-box { background:#f9fafb; border-radius:8px; padding:12px 14px; font-size:14px; font-weight:700; color:#1f2937; word-break:break-all; }
+.body-box  { background:#f9fafb; border-radius:8px; padding:14px; font-size:12px; color:#374151; line-height:1.75; white-space:pre-wrap; font-family:inherit; max-height:500px; overflow-y:auto; margin-bottom:10px; }
+
+.chk-item { font-size:12px; color:#4b5563; line-height:1.5; margin-bottom:4px; }
+
+/* ── empty / skeleton ── */
+#empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 400px; text-align: center; color: #9ca3af; padding: 40px 20px;
+}
+.empty-icon  { font-size: 44px; margin-bottom: 14px; }
+.empty-title { font-size: 15px; font-weight: 600; color: #6b7280; margin-bottom: 6px; }
+.empty-sub   { font-size: 12px; line-height: 1.7; }
+
+.skel { background:#e5e7eb; border-radius:6px; animation:pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+/* ── spinner ── */
+.spin {
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 2.5px solid rgba(255,255,255,.3); border-top-color:#fff;
+  animation: rot .75s linear infinite; flex-shrink:0;
+}
+@keyframes rot { to{transform:rotate(360deg)} }
+
+/* ── result stream ── */
+#results { display: flex; flex-direction: column; gap: 14px; }
+
+/* ── banner ── */
+.banner {
+  background: #3B5BDB; border-radius: 12px; padding: 14px 18px;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+}
+.banner-name  { font-size: 15px; font-weight: 800; color: #fff; }
+.banner-sub   { font-size: 11px; color: rgba(255,255,255,.65); margin-bottom: 3px; }
+.banner-right { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* ── inline row util ── */
+.row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.row.between { justify-content: space-between; }
+</style>
+</head>
+<body>
+
+<!-- ── 헤더 ── -->
+<div id="header">
+  <div class="logo">
+    <div class="logo-mark">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+      </svg>
+    </div>
+    <span class="logo-name">CREMA</span>
+    <span class="logo-sub">Sales Email Generator</span>
+  </div>
+  <div class="header-badges">
+    <span class="badge b-gray">v1.0</span>
+  </div>
+</div>
+
+<!-- ── 2단 레이아웃 ── -->
+<div id="page">
+
+  <!-- 좌측 패널 -->
+  <div id="left-panel">
+
+
+
+    <!-- 입력 폼 -->
+    <div class="card">
+      <div class="card-hd">
+        <div class="card-hd-title">📋 고객사 정보 입력</div>
+      </div>
+      <div class="card-bd">
+
+        <div class="fg">
+          <label>메일 유형 <span class="req">*</span></label>
+          <select id="email-type" onchange="checkReady()">
+            <option value="">유형을 선택하세요</option>
+            <option value="inbound_review">신규 인바운드 — 크리마 리뷰</option>
+            <option value="inbound_fit">신규 인바운드 — 크리마 핏 타겟</option>
+            <option value="inbound_imweb">신규 인바운드 — 아임웹</option>
+            <option value="absent">신규 인바운드 — 부재중</option>
+            <option value="review_absent">신규 인바운드 — 리뷰 부재중</option>
+            <option value="bulk_register">신규 인바운드 — 일괄등록 문구</option>
+            <option value="independent_mall">신규 인바운드 — 독립몰</option>
+            <option value="addon_smartstore">부가서비스 — 스마트스토어 연동</option>
+            <option value="addon_external">부가서비스 — 외부몰 연동</option>
+            <option value="addon_chatbot">부가서비스 — 프리미엄 챗봇</option>
+          </select>
+        </div>
+
+        <div class="fg">
+          <label>고객사 URL <span class="req">*</span></label>
+          <input type="url" id="url" placeholder="https://example.com" oninput="checkReady()"/>
+          <div class="hint">🤖 Generate 시 AI가 실제 웹 검색으로 분석합니다</div>
+        </div>
+
+        <div class="two-col fg">
+          <div>
+            <label>담당자</label>
+            <input type="text" id="contact" placeholder="홍길동 대표"/>
+          </div>
+          <div>
+            <label>수신 이메일</label>
+            <input type="email" id="to-email" placeholder="to@example.com"/>
+          </div>
+        </div>
+
+        <div class="fg">
+          <label>쇼핑몰 규모</label>
+          <div class="toggle-row">
+            <button class="toggle-btn" data-v="brand"   onclick="pickSize(this)">브랜드<br/><span style="font-weight:400;font-size:10px">(연매출 100억↑)</span></button>
+            <button class="toggle-btn on" data-v="soho" onclick="pickSize(this)">소호몰</button>
+            <button class="toggle-btn" data-v="unknown" onclick="pickSize(this)">미확인</button>
+          </div>
+        </div>
+
+        <div class="fg">
+          <label>일배송건수 <span class="req">*</span></label>
+          <div class="tier-list">
+            <button class="tier-btn" data-v="S0" onclick="pickTier(this)">
+              <span>S0 — 일배송건 200건 이상</span><span class="tier-check">✓</span>
+            </button>
+            <button class="tier-btn" data-v="S1" onclick="pickTier(this)">
+              <span>S1 — 100건 이상 200건 미만</span><span class="tier-check">✓</span>
+            </button>
+            <button class="tier-btn" data-v="S2" onclick="pickTier(this)">
+              <span>S2 — 50건 이상 100건 미만</span><span class="tier-check">✓</span>
+            </button>
+            <button class="tier-btn" data-v="S3" onclick="pickTier(this)">
+              <span>S3 — 50건 미만</span><span class="tier-check">✓</span>
+            </button>
+            <button class="tier-btn" data-v="S4" onclick="pickTier(this)">
+              <span>S4 — 아임웹: 30건 미만</span><span class="tier-check">✓</span>
+            </button>
+            <button class="tier-btn" data-v="D0" onclick="pickTier(this)">
+              <span>D0 — 독립형</span><span class="tier-check">✓</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="fg">
+          <label>추가 요청사항</label>
+          <textarea id="note" rows="3"
+            placeholder="예: 경쟁사 브이리뷰 사용 중 / AI Fit 함께 제안 / 아임웹 솔루션..."></textarea>
+        </div>
+
+        <button id="gen-btn" class="btn-primary off" onclick="doGenerate()">
+          ⚡ Generate
+        </button>
+        <div id="gen-hint" class="hint" style="text-align:center;margin-top:7px">
+          메일 유형, URL, 일배송건수는 필수입니다
+        </div>
+
+      </div>
+    </div>
+  </div><!-- /left-panel -->
+
+  <!-- 우측 패널 -->
+  <div id="right-panel">
+
+    <!-- 빈 상태 -->
+    <div id="empty">
+      <div class="empty-icon">🤖</div>
+      <div class="empty-title">고객사 URL을 입력하고 Generate를 클릭하세요</div>
+      <div class="empty-sub">
+        AI가 웹 검색으로 홈페이지를 실제 분석한 뒤<br>
+        업종별 전략 + 개인화 이메일을 자동으로 생성합니다
+      </div>
+    </div>
+
+    <!-- 에러 -->
+    <div id="err-box" class="notice-err" style="display:none">
+      <div class="err-title">⚠️ 오류가 발생했습니다</div>
+      <pre id="err-msg"></pre>
+    </div>
+
+    <!-- 스켈레톤 -->
+    <div id="skeleton" style="display:none">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card"><div class="card-hd"><div class="skel" style="width:90px;height:14px"></div></div><div class="card-bd" style="display:flex;flex-direction:column;gap:8px"><div class="skel" style="height:12px"></div><div class="skel" style="height:12px;width:75%"></div><div class="skel" style="height:12px;width:85%"></div></div></div>
+        <div class="card"><div class="card-hd"><div class="skel" style="width:90px;height:14px"></div></div><div class="card-bd" style="display:flex;flex-direction:column;gap:8px"><div class="skel" style="height:12px"></div><div class="skel" style="height:12px;width:60%"></div></div></div>
+        <div class="card"><div class="card-hd"><div class="skel" style="width:90px;height:14px"></div></div><div class="card-bd" style="display:flex;flex-direction:column;gap:8px"><div class="skel" style="height:12px"></div><div class="skel" style="height:12px;width:80%"></div></div></div>
+        <div class="card"><div class="card-hd"><div class="skel" style="width:90px;height:14px"></div></div><div class="card-bd" style="display:flex;flex-direction:column;gap:8px"><div class="skel" style="height:12px"></div><div class="skel" style="height:12px;width:70%"></div></div></div>
+      </div>
+    </div>
+
+    <!-- 결과 -->
+    <div id="results" style="display:none"></div>
+
+  </div><!-- /right-panel -->
+</div><!-- /page -->
+
+<script>
+/* ── 상태 ── */
+const S = { mallSize:'soho', tier:'' };
+
+/* saveKey 제거 - 서버에서 API 키 관리 */
+
+/* ── 선택 ── */
+function pickSize(el){
+  document.querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on'); S.mallSize = el.dataset.v;
+}
+function pickTier(el){
+  document.querySelectorAll('.tier-btn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on'); S.tier = el.dataset.v; checkReady();
+}
+
+/* ── 준비 여부 ── */
+function checkReady(){
+  const ok = document.getElementById('email-type').value &&
+             document.getElementById('url').value.trim() && S.tier;
+  const btn = document.getElementById('gen-btn');
+  const hint = document.getElementById('gen-hint');
+  btn.className = 'btn-primary ' + (ok ? 'on' : 'off');
+
+  else if(!ok)        hint.textContent = '메일 유형, URL, 일배송건수는 필수입니다';
+  else                hint.textContent = '';
+}
+
+/* ── 크리마 지식 ── */
+const SYS = `당신은 cre.ma(크리마)의 Senior Account Executive입니다.
+
+역할: 이메일 템플릿 구조를 유지하며 고객사를 분석해 개인화된 세일즈 이메일을 생성합니다. 새 이메일을 창작하지 않습니다.
+
+## 업종별 전략
+- 패션: AI Fit > 사이즈 리뷰 > 착용 리뷰 > 포토리뷰 | Pain: 사이즈 고민/반품률/전환율
+- 뷰티: 포토리뷰 > UGC > SNS 활용 | Pain: 후기 신뢰도/콘텐츠 부족
+- 식품: 리뷰 확보 > 재구매 > 신뢰 형성 | Pain: 첫 구매 장벽/후기 부족
+- 리빙: 상세 리뷰 > 이미지 리뷰 > 사용 후기 | Pain: 상품 이해 부족
+- 키즈: 후기 신뢰성 > 포토리뷰 > 구매 결정 | Pain: 부모 구매 불안
+- 펫: 리뷰 커뮤니티 > 장기 고객 > 재구매 | Pain: 브랜드 팬 확보
+
+## AI Fit 적합: 여성의류·남성의류·스포츠웨어·아동복·신발
+
+## 프로모션
+- 카페24: 최초 결제 후 1개월 무료체험 (영구)
+- 아임웹: 최초 1개월 무료체험 후 결제
+- 퍼스트몰/플렉스지: 6개월→1개월 무료, 12개월→2개월 무료
+
+## 가격 (소호몰 임대형)
+S0(200건↑): 정상50만/6개월42.5만/12개월40만
+S1(100~200): 정상30만/6개월25만
+S2(50~100):  정상20만/6개월15만
+S3(50↓):    정상15만/6개월10만
+S4(아임웹30↓): 정상10만/6개월7만
+브랜드(연매출100억↑): DAU5만↓ 월50만, 12개월 월40만
+
+## 레퍼런스
+패션: 굿웨어몰(AI추천순·룩북), 핫핑(알림톡·리뷰10배·사이즈필터), 코닥어패럴(리뷰이벤트), 마르헨제이(소셜위젯), 만다리나덕(알림톡·외부몰연동)
+뷰티: 투슬래시포(외부몰연동), CNP몰(프리뷰위젯·체험단), AGE20's(베스트리뷰)
+키즈: 베베드피노(60%포토리뷰·사이즈), 오울루(다양한위젯)
+펫: 바잇미(반려동물필터), 하림펫푸드(동영상후기), 보듬숍(신뢰후기)
+리빙: 에싸(포토·베스트리뷰), 모던하우스(리뷰팝업), 써모스(효능후기)
+디지털/가전: 휴롬샵(SNS연동), 미로(리뷰연동·복사), 메디테라피(추천리뷰)
+식품: 농심몰(얼리어먹터), 정원e샵(한달사용·재구매), 곰표하우스(레시피리뷰)
+건기식: 안국건강(리뷰연동·알림), 후디스몰(추천리뷰·팝업), 에스더몰(40%포토·필터)
+
+## 이메일 구조 (유지 필수)
+1. 인사+감사+유선 내용 정리
+2. 1:1 미팅 제안+링크
+3. PART1 크리마 소개→개인화 2~3문장→레퍼런스
+4. 크리마 리뷰란? 핵심 수치 3개
+5. 주목 기능
+6. PART2 가격 및 프로세스
+7. 담당자 서명
+
+## 개인화 규칙
+없는 사실 금지 / 과도한 칭찬 금지 / 확인불가 → [확인 필요]`;
+
+/* ── API 호출 ── */
+async function callAPI(form){
+  let hn = form.url;
+  try{ hn = new URL(form.url.startsWith('http') ? form.url : 'https://'+form.url).hostname; }catch(e){}
+
+  const prompt = `## 입력
+- 메일 유형: ${form.emailType}
+- 고객사 URL: ${form.url}
+- 담당자: ${form.contact||'미입력'}
+- 쇼핑몰 규모: ${form.mallSize}
+- 일배송건수 등급: ${form.tier}
+- 추가 요청: ${form.note||'없음'}
+
+## 지시
+web_search로 "${hn}" 검색해 분석 후, 아래 JSON만 출력 (코드블록·설명 없이):
+{"analysis":{"mallName":"","solution":"","category":"","brandPositioning":"","reviewStatus":"","reviewWidget":"","sns":"","aifit":"","overseas":"","painPoints":["","",""]},"strategy":{"template":"","priority":["","",""],"approach":"","checklist":["","","","",""]},"references":[{"name":"","desc":"","tag":""},{"name":"","desc":"","tag":""},{"name":"","desc":"","tag":""}],"promotion":{"platform":"","items":["",""],"pricing":""},"email":{"subject":"","body":""}}`;
+
+  const r = await fetch('/api/generate',{
+    method:'POST',
+    headers:{ 'Content-Type':'application/json' },
+    body: JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:8000,
+      system: SYS,
+      messages:[{role:'user',content:prompt}],
+      tools:[{type:'web_search_20250305',name:'web_search'}]
+    })
+  });
+
+  if(!r.ok){
+    const e = await r.json().catch(()=>({}));
+    throw new Error(e.error?.message || `API 오류 (${r.status})`);
+  }
+
+  const d = await r.json();
+  const txt = (d.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+
+  let parsed = null;
+  const m = txt.match(/\{[\s\S]*?"email"[\s\S]*?\}(?=\s*$)/);
+  if(m){ try{ parsed=JSON.parse(m[0]); }catch(e){} }
+  if(!parsed){ try{ parsed=JSON.parse(txt.replace(/```json|```/g,'').trim()); }catch(e){} }
+  // 마지막 수단: 첫 { 부터 끝까지
+  if(!parsed){
+    const i=txt.indexOf('{');
+    if(i>=0){ try{ parsed=JSON.parse(txt.slice(i)); }catch(e){} }
+  }
+  if(!parsed) throw new Error('응답 파싱 실패. 잠시 후 다시 시도해주세요.\n\n원문:\n'+txt.slice(0,500));
+  return parsed;
+}
+
+/* ── Generate ── */
+async function doGenerate(){
+  const emailTypeEl = document.getElementById('email-type');
+  const form = {
+    emailType: emailTypeEl.options[emailTypeEl.selectedIndex].text,
+    url:       document.getElementById('url').value.trim(),
+    contact:   document.getElementById('contact').value.trim(),
+    toEmail:   document.getElementById('to-email').value.trim(),
+    mallSize:  S.mallSize,
+    tier:      S.tier,
+    note:      document.getElementById('note').value.trim(),
+  };
+  if(!form.url||!S.tier||!emailTypeEl.value) return;
+
+  // UI 로딩
+  show('empty',false); show('err-box',false); show('results',false); show('skeleton',true);
+  const btn = document.getElementById('gen-btn');
+  btn.className='btn-primary off';
+  const steps=['🔍 홈페이지 분석 중...','🧠 업종 파악 중...','📊 전략 수립 중...','✍️ 이메일 개인화 중...'];
+  let si=0; btn.innerHTML=`<div class="spin"></div><span>${steps[0]}</span>`;
+  const t=setInterval(()=>{ si=(si+1)%steps.length; btn.querySelector('span').textContent=steps[si]; },2800);
+
+  try{
+    const res = await callAPI(form);
+    show('skeleton',false);
+    renderResults(res);
+    show('results',true);
+  }catch(e){
+    show('skeleton',false);
+    document.getElementById('err-msg').textContent=e.message;
+    show('err-box',true);
+  }
+
+  clearInterval(t);
+  btn.className='btn-primary on';
+  btn.innerHTML='⚡ Generate';
+}
+
+/* ── 렌더링 ── */
+function renderResults(r){
+  const wrap = document.getElementById('results');
+  wrap.innerHTML='';
+  const a=r.analysis||{}, s=r.strategy||{}, refs=r.references||[], p=r.promotion||{}, em=r.email||{};
+
+  // 배너
+  const ban=div('');
+  ban.className='banner';
+  ban.innerHTML=`<div><div class="banner-sub">분석 완료</div><div class="banner-name">${x(a.mallName)}</div></div>`+
+    `<div class="banner-right">${a.category?`<span class="badge b-blue">${x(a.category.split('/')[0].trim())}</span>`:''}`+
+    `${(a.aifit||'').includes('✅')?'<span class="badge b-green">AI Fit 적합</span>':''}</div>`;
+  wrap.appendChild(ban);
+
+  // 1. 고객 분석
+  const c1copy=[['쇼핑몰',a.mallName],['솔루션',a.solution],['카테고리',a.category],['Pain Points',(a.painPoints||[]).join(' / ')]].map(([k,v])=>`${k}: ${v||''}`).join('\n');
+  const c1=card('🔍 고객 분석', c1copy);
+  const grid=div('kv-grid');
+  [['쇼핑몰',a.mallName],['솔루션',a.solution],['카테고리',a.category],['브랜드 포지셔닝',a.brandPositioning],['리뷰 현황',a.reviewStatus],['SNS',a.sns]].forEach(([l,v])=>{
+    if(!v) return;
+    const cell=div('kv-cell'); cell.innerHTML=`<div class="kv-lbl">${x(l)}</div><div class="kv-val">${x(v)}</div>`;
+    grid.appendChild(cell);
+  });
+  c1.appendChild(grid);
+  if((a.painPoints||[]).length){
+    const pb=div('pain-box'); pb.innerHTML=`<div class="pain-title">핵심 Pain Point</div>`+
+      a.painPoints.map(p=>`<div class="pain-item"><span style="flex-shrink:0">•</span><span>${x(p)}</span></div>`).join('');
+    c1.appendChild(pb);
+  }
+  if(a.aifit){ const af=div(''); af.style='font-size:12px;margin-top:6px'; af.innerHTML=`<strong>AI Fit:</strong> ${x(a.aifit)}`; c1.appendChild(af); }
+  wrap.appendChild(c1);
+
+  // 2. 추천 전략
+  const c2copy=`템플릿: ${s.template||''}\n${s.approach||''}\n우선순위:\n${(s.priority||[]).join('\n')}\n체크:\n${(s.checklist||[]).join('\n')}`;
+  const c2=card('🎯 추천 전략', c2copy);
+  if(s.template){ const row=div('row'); row.innerHTML=`<span style="font-size:12px;color:#6b7280;font-weight:600">선택 템플릿:</span><span class="badge b-purple">${x(s.template)}</span>`; c2.appendChild(row); }
+  if(s.approach){ const sb=div('strat-box'); sb.style.marginTop='10px'; sb.innerHTML=`<div class="strat-txt">${x(s.approach)}</div>`; c2.appendChild(sb); }
+  if((s.priority||[]).length){
+    const lbl=div('sec-lbl'); lbl.textContent='제안 우선순위'; c2.appendChild(lbl);
+    s.priority.forEach((p,i)=>{ const row=div('priority-row'); row.innerHTML=`<span class="priority-num">${i+1}</span><span class="priority-txt">${x(p)}</span>`; c2.appendChild(row); });
+  }
+  if((s.checklist||[]).length){
+    const lbl=div('sec-lbl'); lbl.textContent='AE 체크리스트'; c2.appendChild(lbl);
+    s.checklist.forEach(c=>{ const d=div('chk-item'); d.textContent=c; c2.appendChild(d); });
+  }
+  wrap.appendChild(c2);
+
+  // 3. 레퍼런스
+  const c3=card('🏆 추천 레퍼런스', refs.map(r=>`✔ ${r.name}\n${r.desc}`).join('\n\n'));
+  refs.forEach(ref=>{
+    const row=div('ref-row');
+    row.innerHTML=`<div class="ref-icon">${x((ref.name||'')[0])}</div>`+
+      `<div><div class="ref-meta"><span class="ref-name">${x(ref.name)}</span><span class="badge b-gray">${x(ref.tag)}</span></div>`+
+      `<div class="ref-desc">${x(ref.desc)}</div></div>`;
+    c3.appendChild(row);
+  });
+  wrap.appendChild(c3);
+
+  // 4. 프로모션
+  const c4=card('🎁 적용 프로모션', `${p.platform||''}\n${(p.items||[]).join('\n')}\n${p.pricing||''}`);
+  if(p.platform){ const row=div('row'); row.innerHTML=`<span style="font-size:12px;color:#6b7280;font-weight:600">플랫폼:</span><span class="badge b-orange">${x(p.platform)}</span>`; c4.appendChild(row); }
+  (p.items||[]).forEach(it=>{ const d=div('promo-item'); d.style.marginTop='8px'; d.textContent=it; c4.appendChild(d); });
+  if(p.pricing){ const pb=div('price-box'); pb.style.marginTop='8px'; pb.innerHTML=`<div class="price-lbl">가격 안내</div><div class="price-val">${x(p.pricing)}</div>`; c4.appendChild(pb); }
+  wrap.appendChild(c4);
+
+  // 5. 이메일 제목
+  const c5=card('✉️ 이메일 제목', em.subject||'');
+  const sj=div('subj-box'); sj.textContent=em.subject||''; c5.appendChild(sj);
+  wrap.appendChild(c5);
+
+  // 6. 이메일 본문
+  const c6=card('📝 이메일 본문', em.body||'');
+  const bd=div('body-box'); bd.textContent=em.body||''; c6.appendChild(bd);
+  wrap.appendChild(c6);
+
+  // 초기화
+  const rb=document.createElement('button');
+  rb.className='btn-reset'; rb.textContent='🔄 초기화하고 새 이메일 생성';
+  rb.onclick=reset; wrap.appendChild(rb);
+}
+
+/* ── 헬퍼 ── */
+function div(cls){ const e=document.createElement('div'); if(cls) e.className=cls; return e; }
+function x(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function show(id,v){ document.getElementById(id).style.display=v?(id==='results'?'flex':'block'):'none'; }
+
+function card(title, copyTxt){
+  const c=div('card');
+  const hd=div('card-hd');
+  const t=div('card-hd-title'); t.textContent=title;
+  const cp=document.createElement('button'); cp.className='btn-copy'; cp.textContent='복사';
+  cp.onclick=()=>{ navigator.clipboard.writeText(copyTxt); cp.textContent='✓ 복사됨'; cp.classList.add('done'); setTimeout(()=>{ cp.textContent='복사'; cp.classList.remove('done'); },2000); };
+  hd.appendChild(t); hd.appendChild(cp);
+  const bd=div('card-bd');
+  c.appendChild(hd); c.appendChild(bd);
+  // appendChild를 bd에 위임
+  c.appendChild=child=>{ if(child===hd||child===bd) return HTMLElement.prototype.appendChild.call(c,child); return bd.appendChild(child); };
+  return c;
+}
+
+function reset(){
+  show('results',false); show('err-box',false); show('empty',true);
+  ['email-type','url','contact','to-email','note'].forEach(id=>{ document.getElementById(id).value=''; });
+  S.tier=''; document.querySelectorAll('.tier-btn').forEach(b=>b.classList.remove('on'));
+  checkReady();
+}
+</script>
+</body>
+</html>
