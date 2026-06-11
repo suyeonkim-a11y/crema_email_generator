@@ -303,6 +303,7 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
     <span class="logo-sub">Sales Email Generator</span>
   </div>
   <div class="header-badges">
+    <span id="hd-badge-api" class="badge b-green" style="display:none">✓ API 연결됨</span>
     <span class="badge b-gray">v1.0</span>
   </div>
 </div>
@@ -314,6 +315,26 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
   <div id="left-panel">
 
 
+
+    <!-- API 설정 -->
+    <div class="card">
+      <div class="card-hd">
+        <div class="card-hd-title">⚙️ API 설정</div>
+        <span id="api-badge" class="badge b-green" style="display:none">연결됨</span>
+      </div>
+      <div class="card-bd">
+        <div class="fg">
+          <label>Anthropic API Key <span class="req">*</span></label>
+          <input type="password" id="api-key" placeholder="sk-ant-api03-..." autocomplete="off"/>
+          <div class="row between" style="margin-top:6px">
+            <a href="https://console.anthropic.com" target="_blank"
+               style="font-size:11px;color:#3B5BDB;text-decoration:none">console.anthropic.com에서 발급 →</a>
+            <button class="btn-save" onclick="saveKey()">저장</button>
+          </div>
+          <div id="key-ok" class="notice-ok" style="display:none">✅ 저장 완료 (브라우저에 기억됨)</div>
+        </div>
+      </div>
+    </div>
 
     <!-- 입력 폼 -->
     <div class="card">
@@ -443,9 +464,19 @@ select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 
 <script>
 /* ── 상태 ── */
-const S = { mallSize:'soho', tier:'' };
+const S = { apiKey:'', mallSize:'soho', tier:'' };
 
-/* saveKey 제거 - 서버에서 API 키 관리 */
+/* ── API 키 저장 ── */
+function saveKey(){
+  const v = document.getElementById('api-key').value.trim();
+  if(!v){ alert('API 키를 입력하세요.'); return; }
+  S.apiKey = v;
+  localStorage.setItem('crema_api_key', v);
+  document.getElementById('key-ok').style.display = 'block';
+  document.getElementById('hd-badge-api').style.display = 'inline-flex';
+  document.getElementById('api-badge').style.display = 'inline-flex';
+  checkReady();
+}
 
 /* ── 선택 ── */
 function pickSize(el){
@@ -459,13 +490,14 @@ function pickTier(el){
 
 /* ── 준비 여부 ── */
 function checkReady(){
-  const ok = document.getElementById('email-type').value &&
+  const ok = S.apiKey && document.getElementById('email-type').value &&
              document.getElementById('url').value.trim() && S.tier;
   const btn = document.getElementById('gen-btn');
   const hint = document.getElementById('gen-hint');
   btn.className = 'btn-primary ' + (ok ? 'on' : 'off');
 
   else if(!ok)        hint.textContent = '메일 유형, URL, 일배송건수는 필수입니다';
+  if(!S.apiKey)       hint.textContent = '↑ 먼저 API 키를 저장하세요';
   else                hint.textContent = '';
 }
 
@@ -536,9 +568,14 @@ async function callAPI(form){
 web_search로 "${hn}" 검색해 분석 후, 아래 JSON만 출력 (코드블록·설명 없이):
 {"analysis":{"mallName":"","solution":"","category":"","brandPositioning":"","reviewStatus":"","reviewWidget":"","sns":"","aifit":"","overseas":"","painPoints":["","",""]},"strategy":{"template":"","priority":["","",""],"approach":"","checklist":["","","","",""]},"references":[{"name":"","desc":"","tag":""},{"name":"","desc":"","tag":""},{"name":"","desc":"","tag":""}],"promotion":{"platform":"","items":["",""],"pricing":""},"email":{"subject":"","body":""}}`;
 
-  const r = await fetch('/api/generate',{
+  const r = await fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
-    headers:{ 'Content-Type':'application/json' },
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key': S.apiKey,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
     body: JSON.stringify({
       model:'claude-sonnet-4-20250514',
       max_tokens:8000,
@@ -565,7 +602,7 @@ web_search로 "${hn}" 검색해 분석 후, 아래 JSON만 출력 (코드블록�
     const i=txt.indexOf('{');
     if(i>=0){ try{ parsed=JSON.parse(txt.slice(i)); }catch(e){} }
   }
-  if(!parsed) throw new Error('응답 파싱 실패. 잠시 후 다시 시도해주세요.\n\n원문:\n'+txt.slice(0,500));
+  if(!parsed) throw new Error('응답 파싱 실패. API 키·네트워크를 확인하세요.\n\n원문:\n'+txt.slice(0,500));
   return parsed;
 }
 
@@ -581,7 +618,7 @@ async function doGenerate(){
     tier:      S.tier,
     note:      document.getElementById('note').value.trim(),
   };
-  if(!form.url||!S.tier||!emailTypeEl.value) return;
+  if(!S.apiKey||!form.url||!S.tier||!emailTypeEl.value) return;
 
   // UI 로딩
   show('empty',false); show('err-box',false); show('results',false); show('skeleton',true);
@@ -713,6 +750,21 @@ function reset(){
   S.tier=''; document.querySelectorAll('.tier-btn').forEach(b=>b.classList.remove('on'));
   checkReady();
 }
+</script>
+
+<script>
+// 페이지 로드 시 저장된 API 키 자동 복원
+window.addEventListener('load', function(){
+  const saved = localStorage.getItem('crema_api_key');
+  if(saved){
+    document.getElementById('api-key').value = saved;
+    S.apiKey = saved;
+    document.getElementById('key-ok').style.display = 'block';
+    document.getElementById('hd-badge-api').style.display = 'inline-flex';
+    document.getElementById('api-badge').style.display = 'inline-flex';
+    checkReady();
+  }
+});
 </script>
 </body>
 </html>
